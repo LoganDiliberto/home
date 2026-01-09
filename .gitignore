@@ -48,3 +48,6 @@ Thumbs.db
 *.log
 
 
+venv/
+.venv*/
+venv311/
