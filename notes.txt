@@ -1,0 +1,25 @@
+Spotify:
+Better Searching of songs
+Queue songs
+Play songs by an artist
+Command play should take in the rest of teh sentence not just first word
+
+LLM:
+Fix weather Searching
+fix web Searching
+
+Change Voice 
+
+Alarm System:
+Set timer
+Set daily timer
+
+Calendar:
+Add this to my Calendar
+
+Email:
+Read X Email
+How many unread emails do I have?
+
+Todo List:
+Chore List:
