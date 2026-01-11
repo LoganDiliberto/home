@@ -52,12 +52,17 @@ class ServiceContainer:
         """Initialize all agent tools."""
         logger.info("Initializing agent tools...")
         
-        from commands.tools import MathTool, WeatherTool, WebSearchTool, NewsTool
+        from commands.tools import MathTool, WeatherTool, WebSearchTool, NewsTool, LightTool
         
         # Initialize math tool (no API key needed)
         math_tool = MathTool()
         self._tools.append(math_tool)
         logger.info("MathTool initialized")
+        
+        # Initialize light tool (no API key needed)
+        light_tool = LightTool()
+        self._tools.append(light_tool)
+        logger.info("LightTool initialized")
         
         # Initialize weather tool
         weather_api_key = os.getenv("WEATHER_API_KEY")
