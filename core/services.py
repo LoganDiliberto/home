@@ -52,7 +52,7 @@ class ServiceContainer:
         """Initialize all agent tools."""
         logger.info("Initializing agent tools...")
         
-        from commands.tools import MathTool, WeatherTool, WebSearchTool, NewsTool, LightTool
+        from commands.tools import MathTool, LightTool
         
         # Initialize math tool (no API key needed)
         math_tool = MathTool()
@@ -63,33 +63,6 @@ class ServiceContainer:
         light_tool = LightTool()
         self._tools.append(light_tool)
         logger.info("LightTool initialized")
-        
-        # Initialize weather tool
-        weather_api_key = os.getenv("WEATHER_API_KEY")
-        if weather_api_key:
-            weather_tool = WeatherTool(api_key=weather_api_key)
-            self._tools.append(weather_tool)
-            logger.info("WeatherTool initialized with API key")
-        else:
-            weather_tool = WeatherTool(api_key=None)
-            self._tools.append(weather_tool)
-            logger.warning("WeatherTool initialized without API key (will return errors when used)")
-        
-        # Initialize web search tool
-        web_search_tool = WebSearchTool(openai_client=self._services.get('openai_client'))
-        self._tools.append(web_search_tool)
-        logger.info("WebSearchTool initialized")
-        
-        # Initialize news tool
-        news_api_key = os.getenv("NEWS_API_KEY")
-        if news_api_key:
-            news_tool = NewsTool(api_key=news_api_key)
-            self._tools.append(news_tool)
-            logger.info("NewsTool initialized with API key")
-        else:
-            news_tool = NewsTool(api_key=None)
-            self._tools.append(news_tool)
-            logger.warning("NewsTool initialized without API key (will return errors when used)")
         
         logger.info(f"Initialized {len(self._tools)} agent tools")
     

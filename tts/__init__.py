@@ -1,2 +1,2 @@
-"""TTS voice cloning module for Coqui TTS integration."""
+"""TTS module for text-to-speech functionality."""
 

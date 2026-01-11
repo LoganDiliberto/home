@@ -5,7 +5,6 @@ import time
 import logging
 import re
 import os
-import tempfile
 import speech_recognition as sr
 import pyttsx3
 from dotenv import load_dotenv
@@ -15,12 +14,6 @@ from pathlib import Path
 from core.services import ServiceContainer
 from commands import get_registry
 
-# Try to import Coqui TTS (optional)
-try:
-    from TTS.api import TTS
-    COQUI_TTS_AVAILABLE = True
-except ImportError:
-    COQUI_TTS_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(
@@ -50,96 +43,8 @@ recognizer.dynamic_energy_threshold = True
 # Wake word
 WAKE_WORD = "alexa"
 
-# Global TTS engine instances (reused for better performance)
+# Global TTS engine instance (reused for better performance)
 _pyttsx3_engine = None
-_coqui_tts_engine = None
-_coqui_voice_name = None
-
-
-class CoquiTTSEngine:
-    """Coqui TTS engine wrapper for voice cloning."""
-    
-    def __init__(self, voice_name: str, device: str = "cpu"):
-        """Initialize Coqui TTS engine with a cloned voice."""
-        if not COQUI_TTS_AVAILABLE:
-            raise ImportError("Coqui TTS not available. Install with: pip install TTS")
-        
-        self.voice_name = voice_name
-        self.device = device
-        
-        # Get voice path
-        from tts.voice_manager import get_voice_path
-        voice_dir = get_voice_path(voice_name)
-        voice_file = voice_dir / "voice.wav"
-        
-        if not voice_file.exists():
-            raise FileNotFoundError(
-                f"Cloned voice not found: {voice_file}\n"
-                f"Run 'python tts/clone_voice.py {voice_name}' to create it."
-            )
-        
-        logger.info(f"Initializing Coqui TTS with voice: {voice_name}")
-        logger.info("(This may take a while on first run as it downloads the model)")
-        
-        # Initialize TTS model
-        self.tts = TTS(
-            model_name="tts_models/multilingual/multi-dataset/xtts_v2",
-            progress_bar=False
-        )
-        
-        self.voice_file = str(voice_file)
-        logger.info(f"Coqui TTS engine initialized with voice: {voice_name}")
-    
-    def speak(self, text: str):
-        """Synthesize and play speech using the cloned voice."""
-        try:
-            # Create temporary file for audio output
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
-                output_path = tmp_file.name
-            
-            # Generate speech
-            self.tts.tts_to_file(
-                text=text,
-                file_path=output_path,
-                speaker_wav=self.voice_file,
-                language="en"
-            )
-            
-            # Play the audio file using pyaudio
-            import wave
-            import pyaudio
-            
-            wf = wave.open(output_path, 'rb')
-            p = pyaudio.PyAudio()
-            
-            stream = p.open(
-                format=p.get_format_from_width(wf.getsampwidth()),
-                channels=wf.getnchannels(),
-                rate=wf.getframerate(),
-                output=True
-            )
-            
-            # Read and play audio in chunks
-            chunk = 1024
-            data = wf.readframes(chunk)
-            while data:
-                stream.write(data)
-                data = wf.readframes(chunk)
-            
-            # Clean up
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
-            wf.close()
-            
-            try:
-                os.unlink(output_path)
-            except:
-                pass
-                
-        except Exception as e:
-            logger.error(f"Error in Coqui TTS synthesis: {e}", exc_info=True)
-            raise
 
 
 def get_pyttsx3_engine():
@@ -156,8 +61,6 @@ def get_pyttsx3_engine():
             'Microsoft Zira',  # Natural female voice (Windows 10+)
             'Microsoft David',  # Natural male voice (Windows 10+)
             'Microsoft Mark',   # Natural male voice (Windows 10+)
-            'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0',  # Zira full path
-            'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0',  # David full path
         ]
         
         # Try to find a preferred voice
@@ -186,47 +89,12 @@ def get_pyttsx3_engine():
     return _pyttsx3_engine
 
 
-def get_coqui_tts_engine():
-    """Get or initialize Coqui TTS engine."""
-    global _coqui_tts_engine, _coqui_voice_name
-    
-    voice_name = os.getenv("TTS_VOICE_NAME")
-    if not voice_name:
-        raise ValueError(
-            "TTS_VOICE_NAME environment variable not set. "
-            "Set it to the name of a cloned voice."
-        )
-    
-    device = os.getenv("COQUI_DEVICE", "cpu")
-    
-    # Reinitialize if voice name changed
-    if _coqui_tts_engine is None or _coqui_voice_name != voice_name:
-        _coqui_tts_engine = CoquiTTSEngine(voice_name, device=device)
-        _coqui_voice_name = voice_name
-    
-    return _coqui_tts_engine
-
-
 def get_tts_engine():
-    """Get or initialize the TTS engine based on configuration."""
-    tts_engine_type = os.getenv("TTS_ENGINE", "pyttsx3").lower()
-    
-    if tts_engine_type == "coqui":
-        if not COQUI_TTS_AVAILABLE:
-            logger.warning("Coqui TTS requested but not available. Falling back to pyttsx3.")
-            logger.warning("Install with: pip install TTS")
-            return get_pyttsx3_engine()
-        try:
-            return get_coqui_tts_engine()
-        except Exception as e:
-            logger.error(f"Error initializing Coqui TTS: {e}")
-            logger.warning("Falling back to pyttsx3.")
-            return get_pyttsx3_engine()
-    else:
-        return get_pyttsx3_engine()
+    """Get or initialize the TTS engine."""
+    return get_pyttsx3_engine()
 
 def list_available_voices():
-    """List all available TTS voices (both pyttsx3 and cloned voices)."""
+    """List all available TTS voices."""
     print("\nAvailable TTS Voices:")
     print("=" * 80)
     
@@ -242,21 +110,6 @@ def list_available_voices():
         engine.stop()
     except Exception as e:
         print(f"Error listing pyttsx3 voices: {e}")
-    
-    # List cloned voices
-    print("\nCloned Voices (Coqui TTS):")
-    print("-" * 80)
-    try:
-        from tts.voice_manager import list_cloned_voices
-        cloned_voices = list_cloned_voices()
-        if cloned_voices:
-            for i, voice in enumerate(cloned_voices, 1):
-                print(f"{i}. {voice}")
-        else:
-            print("No cloned voices found.")
-            print("Run 'python tts/record_voice.py' and 'python tts/clone_voice.py' to create one.")
-    except Exception as e:
-        print(f"Error listing cloned voices: {e}")
     
     print()
 
@@ -284,16 +137,9 @@ def speak_text(text):
     logger.debug(f"Speaking text: {cleaned_text[:50]}...")
     try:
         engine = get_tts_engine()
-        tts_engine_type = os.getenv("TTS_ENGINE", "pyttsx3").lower()
-        
-        if tts_engine_type == "coqui" and isinstance(engine, CoquiTTSEngine):
-            # Use Coqui TTS
-            engine.speak(cleaned_text)
-        else:
-            # Use pyttsx3
-            engine.say(cleaned_text)
-            engine.runAndWait()
-            # Note: Don't call engine.stop() as we want to reuse the engine
+        engine.say(cleaned_text)
+        engine.runAndWait()
+        # Note: Don't call engine.stop() as we want to reuse the engine
         
         logger.debug("Text-to-speech completed successfully")
     except Exception as e:

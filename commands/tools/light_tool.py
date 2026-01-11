@@ -15,7 +15,7 @@ MQTT_PORT = 1883
 
 # List of available light device names
 # Add more lights here as needed
-AVAILABLE_LIGHTS = ["bulb1", "starter_bulb"]
+AVAILABLE_LIGHTS = ["bulb1", "bulb2"]
 
 
 class LightTool(Tool):
