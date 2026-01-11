@@ -5,6 +5,7 @@ import time
 import logging
 import re
 import os
+import platform
 import speech_recognition as sr
 import pyttsx3
 from dotenv import load_dotenv
@@ -56,24 +57,37 @@ def get_pyttsx3_engine():
         # Get available voices
         voices = _pyttsx3_engine.getProperty('voices')
         
-        # Prefer natural-sounding voices (in order of preference)
-        preferred_voice_names = [
-            'Microsoft Zira',  # Natural female voice (Windows 10+)
-            'Microsoft David',  # Natural male voice (Windows 10+)
-            'Microsoft Mark',   # Natural male voice (Windows 10+)
-        ]
+        # Platform-specific voice preferences
+        system = platform.system()
+        if system == 'Windows':
+            # Windows SAPI voices
+            preferred_voice_names = [
+                'Microsoft Zira',  # Natural female voice (Windows 10+)
+                'Microsoft David',  # Natural male voice (Windows 10+)
+                'Microsoft Mark',   # Natural male voice (Windows 10+)
+            ]
+        elif system == 'Linux':
+            # Linux espeak/festival voices (common on Raspberry Pi)
+            preferred_voice_names = [
+                'english',  # Generic English voice
+                'en',       # English language code
+            ]
+        else:
+            # macOS or other platforms
+            preferred_voice_names = []
         
         # Try to find a preferred voice
         voice_found = False
-        for preferred_name in preferred_voice_names:
-            for voice in voices:
-                if preferred_name.lower() in voice.name.lower() or preferred_name.lower() in voice.id.lower():
-                    _pyttsx3_engine.setProperty('voice', voice.id)
-                    logger.info(f"Using pyttsx3 voice: {voice.name} ({voice.id})")
-                    voice_found = True
+        if preferred_voice_names:
+            for preferred_name in preferred_voice_names:
+                for voice in voices:
+                    if preferred_name.lower() in voice.name.lower() or preferred_name.lower() in voice.id.lower():
+                        _pyttsx3_engine.setProperty('voice', voice.id)
+                        logger.info(f"Using pyttsx3 voice: {voice.name} ({voice.id})")
+                        voice_found = True
+                        break
+                if voice_found:
                     break
-            if voice_found:
-                break
         
         if not voice_found and voices:
             # Fallback to first available voice
@@ -81,10 +95,14 @@ def get_pyttsx3_engine():
             logger.info(f"Using default pyttsx3 voice: {voices[0].name}")
         
         # Configure voice properties for more natural speech
-        _pyttsx3_engine.setProperty('rate', 175)  # Slightly slower for more natural pace
+        # Adjust rate for Linux (espeak tends to be faster)
+        if system == 'Linux':
+            _pyttsx3_engine.setProperty('rate', 150)  # Slower for espeak
+        else:
+            _pyttsx3_engine.setProperty('rate', 175)  # Standard rate for Windows/macOS
         _pyttsx3_engine.setProperty('volume', 0.9)  # Slightly lower for more natural sound
         
-        logger.info("pyttsx3 engine initialized with natural voice settings")
+        logger.info(f"pyttsx3 engine initialized with natural voice settings (platform: {system})")
     
     return _pyttsx3_engine
 
