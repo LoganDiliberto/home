@@ -10,6 +10,7 @@ from .spotify_commands import (
 )
 from .system_commands import ExitCommand
 from .light_commands import TurnOnLightCommand, TurnOffLightCommand
+from .plug_commands import TurnOnPlugCommand, TurnOffPlugCommand
 from .llm_command import LLMCommand
 from .test_command import TestCommand
 
@@ -36,6 +37,8 @@ def get_registry() -> CommandRegistry:
         _registry.register(VolumeDownCommand())
         _registry.register(TurnOnLightCommand())
         _registry.register(TurnOffLightCommand())
+        _registry.register(TurnOnPlugCommand())
+        _registry.register(TurnOffPlugCommand())
         _registry.register(TestCommand())  # Example: Easy to add new commands!
         # LLM command should be last (lowest priority) as it's the fallback
         _registry.register(LLMCommand())
@@ -53,6 +56,8 @@ __all__ = [
     'ExitCommand',
     'TurnOnLightCommand',
     'TurnOffLightCommand',
+    'TurnOnPlugCommand',
+    'TurnOffPlugCommand',
     'TestCommand',
     'LLMCommand',
     'get_registry',
