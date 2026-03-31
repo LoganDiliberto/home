@@ -9,7 +9,13 @@ from .spotify_commands import (
     VolumeDownCommand
 )
 from .system_commands import ExitCommand
-from .light_commands import TurnOnLightCommand, TurnOffLightCommand
+from .light_commands import (
+    TurnOnLightCommand,
+    TurnOffLightCommand,
+    QualitativeLightAdjustCommand,
+    SetLightBrightnessCommand,
+    SetLightColorCommand,
+)
 from .plug_commands import TurnOnPlugCommand, TurnOffPlugCommand
 from .llm_command import LLMCommand
 from .test_command import TestCommand
@@ -35,6 +41,9 @@ def get_registry() -> CommandRegistry:
         _registry.register(PreviousTrackCommand())
         _registry.register(VolumeUpCommand())
         _registry.register(VolumeDownCommand())
+        _registry.register(QualitativeLightAdjustCommand())
+        _registry.register(SetLightBrightnessCommand())
+        _registry.register(SetLightColorCommand())
         _registry.register(TurnOnLightCommand())
         _registry.register(TurnOffLightCommand())
         _registry.register(TurnOnPlugCommand())
@@ -56,6 +65,9 @@ __all__ = [
     'ExitCommand',
     'TurnOnLightCommand',
     'TurnOffLightCommand',
+    'QualitativeLightAdjustCommand',
+    'SetLightBrightnessCommand',
+    'SetLightColorCommand',
     'TurnOnPlugCommand',
     'TurnOffPlugCommand',
     'TestCommand',

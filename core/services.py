@@ -52,7 +52,7 @@ class ServiceContainer:
         """Initialize all agent tools."""
         logger.info("Initializing agent tools...")
         
-        from commands.tools import MathTool, LightTool
+        from commands.tools import MathTool, LightTool, PlugTool, SpotifyTool
         
         # Initialize math tool (no API key needed)
         math_tool = MathTool()
@@ -63,6 +63,14 @@ class ServiceContainer:
         light_tool = LightTool()
         self._tools.append(light_tool)
         logger.info("LightTool initialized")
+        
+        plug_tool = PlugTool()
+        self._tools.append(plug_tool)
+        logger.info("PlugTool initialized")
+
+        spotify_tool = SpotifyTool()
+        self._tools.append(spotify_tool)
+        logger.info("SpotifyTool initialized")
         
         logger.info(f"Initialized {len(self._tools)} agent tools")
     

@@ -15,7 +15,7 @@ MQTT_PORT = 1883
 
 # List of available light device names
 # Add more lights here as needed
-AVAILABLE_PLUGS = ["smartplug1"]
+AVAILABLE_PLUGS = ["livingroomlight", "bedroomlight"]
 
 
 class PlugTool(Tool):
@@ -102,7 +102,7 @@ class PlugTool(Tool):
             results = []
             success_count = 0
             
-            for device_name in self.available_lights:
+            for device_name in self.available_plugs:
                 if self._control_plug(device_name, state):
                     success_count += 1
                     results.append(f"✓ {device_name}")
@@ -112,7 +112,7 @@ class PlugTool(Tool):
             if success_count == len(self.available_plugs):
                 return f"Successfully turned {action} all {len(self.available_plugs)} plug(s)."
             elif success_count > 0:
-                return f"Partially successful: turned {action} {success_count} of {len(self.available_lights)} light(s).\n" + "\n".join(results)
+                return f"Partially successful: turned {action} {success_count} of {len(self.available_plugs)} plug(s).\n" + "\n".join(results)
             else:
                 return f"Error: Failed to turn {action} any plugs.\n" + "\n".join(results)
         

@@ -22,7 +22,20 @@ class LLMCommand(Command):
         # System message to guide the agent
         self.system_message = {
             "role": "system",
-            "content": "You are a helpful voice assistant. You have access to various tools to help answer questions. Use the tools when appropriate to provide accurate and up-to-date information. When using tools, execute them and provide clear, concise responses based on the results."
+            "content": (
+                "You are a helpful voice assistant. You have access to various tools to help answer questions. "
+                "Use the tools when appropriate to provide accurate and up-to-date information. When using tools, "
+                "execute them and provide clear, concise responses based on the results. "
+                "For lights (control_lights): do not ask the user for numeric brightness or color values when they "
+                "describe changes in words (e.g. dimmer, brighter, warmer, darker red, more vibrant). Use "
+                "brightness_change, color_adjustment, and optional named_color instead. "
+                "For atmosphere, mood, or 'make it feel like…' requests (e.g. beach, cozy, forest, rain), infer "
+                "appropriate lighting and audio from the user's words—no predefined scenes required. Call "
+                "control_lights and play_spotify in the same assistant turn when both make sense; choose a short "
+                "Spotify search query that matches the vibe (e.g. ocean waves ambient, warm jazz evening). "
+                "If only lighting or only audio fits, use the relevant tool(s). Do not ask the user for numbers "
+                "unless you cannot act without them."
+            )
         }
     
     def can_handle(self, command: str) -> bool:
